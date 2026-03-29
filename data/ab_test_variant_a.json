@@ -1,0 +1,37 @@
+{
+  "activity_id": "rwa-fee-rebate-2026-03",
+  "activity_name": "RWA 交易手續費返還活動",
+  "activity_description": "針對台灣當沖散戶，交易 SNDKX 或 SLVX 合約，手續費立返 10%。無門檻，每一筆都返，穩穩的收益。",
+  "duration": "2026-03-29 至 2026-04-30",
+  "status": "進行中",
+  "target_users": "台灣當沖散戶、RWA 資產交易用戶",
+  "rewards": [
+    {
+      "type": "交易手續費返還",
+      "description": "交易 SNDKX 或 SLVX 合約時，支付的交易手續費可立即返還 10%",
+      "amount": "每筆交易手續費的 10%",
+      "frequency": "每筆交易都返"
+    }
+  ],
+  "conditions": [
+    "活動期間內的任何 SNDKX 或 SLVX 交易都適用",
+    "無最小交易額限制",
+    "返還的手續費以 USDT 形式直接返還到用戶賬戶",
+    "無門檻，新舊用戶都可參加"
+  ],
+  "highlights": [
+    {
+      "title": "無門檻低門檻參加",
+      "description": "不需要達到特定交易額或資金要求，任何金額的交易都能獲得返還"
+    },
+    {
+      "title": "每筆都返，穩穩的收益",
+      "description": "交易越頻繁，獲得的返還越多，是當沖散戶的絕佳收益機制"
+    },
+    {
+      "title": "即時返還",
+      "description": "手續費返還立即到帳，不用等待，資金流動更靈活"
+    }
+  ],
+  "marketing_angle": "效率型、保障型、低風險的交易激勵方案"
+}

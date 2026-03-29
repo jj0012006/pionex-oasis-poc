@@ -1,0 +1,44 @@
+{
+  "activity_id": "rwa-leaderboard-2026-03",
+  "activity_name": "RWA 當沖排行榜挑戰賽",
+  "activity_description": "交易 RWA 資產（SNDKX/SLVX），按週交易額排名前 10 名瓜分 $10,000 獎金池。第一名獨得 $3,000，適合高頻大戶。",
+  "duration": "2026-03-29 至 2026-04-30",
+  "status": "進行中",
+  "target_users": "高頻交易者、專業當沖散戶、大額交易用戶",
+  "rewards": [
+    {
+      "type": "週排名獎金",
+      "description": "每週按 SNDKX/SLVX 合約交易額排名，前 10 名獲得獎金",
+      "amount": "總獎金池 $10,000/週",
+      "frequency": "每週結算一次（活動期間共 5 週）"
+    }
+  ],
+  "prize_distribution": [
+    { "rank": "第 1 名", "amount": "$3,000" },
+    { "rank": "第 2 名", "amount": "$1,500" },
+    { "rank": "第 3 名", "amount": "$1,200" },
+    { "rank": "第 4-5 名", "amount": "$1,000 / 人" },
+    { "rank": "第 6-10 名", "amount": "$500 / 人" }
+  ],
+  "conditions": [
+    "活動期間內的 SNDKX 和 SLVX 合約交易額累計計算",
+    "排名僅計入現貨交易額，不計槓桿交易",
+    "單週交易額排名決定獎金分配",
+    "一個用戶可參加多週排名，但每週只能獲得一個獎項"
+  ],
+  "highlights": [
+    {
+      "title": "週榜挑戰，獎金豐厚",
+      "description": "每週重新排名，給所有玩家都有機會，第一名獨得 $3,000"
+    },
+    {
+      "title": "適合高頻交易者",
+      "description": "交易額越大，排名越靠前，獎金越高。為專業散戶量身打造"
+    },
+    {
+      "title": "激烈競爭，高收益潛力",
+      "description": "與其他頂級交易者競爭，贏家通吃的刺激感"
+    }
+  ],
+  "marketing_angle": "競爭型、高風險高收益的交易激勵方案"
+}

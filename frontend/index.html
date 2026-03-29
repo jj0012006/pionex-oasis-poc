@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pionex 运营模拟中枢 - MVP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #0a0e14;
+            color: #e8e8e8;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            gap: 16px;
+            padding: 16px;
+        }
+
+        .panel {
+            background: #111a23;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #1a2332;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .left-panel {
+            width: 280px;
+            justify-content: flex-start;
+        }
+
+        .center-panel {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .right-panel {
+            width: 300px;
+            justify-content: flex-start;
+        }
+
+        .config-section h2 {
+            font-size: 16px;
+            color: #1AE5A1;
+            margin-bottom: 16px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #a8a8a8;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            background: #0a0e14;
+            border: 1px solid #1a2332;
+            border-radius: 4px;
+            color: #e8e8e8;
+            font-size: 13px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #1AE5A1;
+            box-shadow: 0 0 0 2px rgba(26, 229, 161, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #1AE5A1 0%, #16c99a 100%);
+            border: none;
+            border-radius: 4px;
+            color: #0a0e14;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(26, 229, 161, 0.3);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #canvas {
+            border: 1px solid #1a2332;
+            border-radius: 8px;
+            background: #0a0e14;
+            cursor: crosshair;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .comments-header {
+            font-size: 14px;
+            color: #1AE5A1;
+            margin-bottom: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        #commentsContainer {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 4px;
+        }
+
+        #commentsContainer::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #commentsContainer::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #commentsContainer::-webkit-scrollbar-thumb {
+            background: #1a2332;
+            border-radius: 3px;
+        }
+
+        #commentsContainer::-webkit-scrollbar-thumb:hover {
+            background: #2a3d52;
+        }
+
+        .comment {
+            background: #0f1418;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #1AE5A1;
+            font-size: 12px;
+            line-height: 1.4;
+            animation: slideIn 0.3s ease-out;
+            word-wrap: break-word;
+        }
+
+        .comment.persona-green {
+            border-left-color: #1AE5A1;
+        }
+
+        .comment.persona-yellow {
+            border-left-color: #f5a623;
+        }
+
+        .comment.persona-blue {
+            border-left-color: #2196f3;
+        }
+
+        .comment.persona-purple {
+            border-left-color: #9c27b0;
+        }
+
+        .comment.persona-gray {
+            border-left-color: #757575;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-text {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .status-text.active {
+            color: #1AE5A1;
+            font-weight: 600;
+        }
+
+        .error-text {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel left-panel">
+            <div class="config-section">
+                <h2>🎯 运营推演</h2>
+                
+                <div class="form-group">
+                    <label for="activityName">活动名称</label>
+                    <input 
+                        type="text" 
+                        id="activityName" 
+                        placeholder="如：Spring Campaign 2026"
+                        value="Spring Campaign 2026"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="persona">用户画像</label>
+                    <select id="persona">
+                        <option value="all">全部（随机）</option>
+                        <option value="green">活跃交易者（绿）</option>
+                        <option value="yellow">新手用户（黄）</option>
+                        <option value="blue">持仓者（蓝）</option>
+                        <option value="purple">策略用户（紫）</option>
+                        <option value="gray">观察者（灰）</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="nodeCount">节点数量</label>
+                    <input 
+                        type="number" 
+                        id="nodeCount" 
+                        min="10" 
+                        max="200" 
+                        value="50"
+                    >
+                </div>
+
+                <button class="btn" id="startBtn">开始推演</button>
+                <div class="status-text" id="statusText">准备就绪</div>
+                <div class="error-text" id="errorText"></div>
+            </div>
+        </div>
+
+        <div class="panel center-panel">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="panel right-panel">
+            <div class="comments-header">💬 实时评论</div>
+            <div id="commentsContainer"></div>
+            <div class="status-text" id="commentsStatus">等待数据...</div>
+        </div>
+    </div>
+
+    <script>
+        const PERSONA_COLORS = {
+            green: { name: '活跃交易者', hex: '#1AE5A1' },
+            yellow: { name: '新手用户', hex: '#f5a623' },
+            blue: { name: '持仓者', hex: '#2196f3' },
+            purple: { name: '策略用户', hex: '#9c27b0' },
+            gray: { name: '观察者', hex: '#757575' }
+        };
+
+        function getRandomPersona() {
+            const personas = Object.keys(PERSONA_COLORS);
+            return personas[Math.floor(Math.random() * personas.length)];
+        }
+
+        class NodeAnimation {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.isAnimating = false;
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+
+            resizeCanvas() {
+                this.canvas.width = this.canvas.offsetWidth;
+                this.canvas.height = this.canvas.offsetHeight;
+            }
+
+            createParticles(count, filterPersona = null) {
+                this.particles = [];
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 * i) / count;
+                    const speed = 3 + Math.random() * 4;
+                    const persona = filterPersona === 'all' ? getRandomPersona() : filterPersona;
+                    const color = PERSONA_COLORS[persona || getRandomPersona()];
+
+                    this.particles.push({
+                        x: centerX,
+                        y: centerY,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        radius: 4 + Math.random() * 4,
+                        color: color.hex,
+                        persona: persona,
+                        life: 1,
+                        decay: 0.98 + Math.random() * 0.02
+                    });
+                }
+
+                this.isAnimating = true;
+                this.animate();
+            }
+
+            animate() {
+                this.ctx.fillStyle = '#0a0e14';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+                let hasAlive = false;
+
+                for (const particle of this.particles) {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.life *= particle.decay;
+
+                    if (particle.life > 0.01) {
+                        hasAlive = true;
+
+                        this.ctx.fillStyle = particle.color;
+                        this.ctx.globalAlpha = particle.life;
+                        this.ctx.beginPath();
+                        this.ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                        this.ctx.fill();
+                        this.ctx.globalAlpha = 1;
+                    }
+                }
+
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                this.ctx.fillStyle = '#1AE5A1';
+                this.ctx.globalAlpha = 0.6;
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.globalAlpha = 1;
+
+                if (hasAlive) {
+                    requestAnimationFrame(() => this.animate());
+                } else {
+                    this.isAnimating = false;
+                }
+            }
+        }
+
+        const canvas = document.getElementById('canvas');
+        const nodeAnim = new NodeAnimation(canvas);
+
+        const startBtn = document.getElementById('startBtn');
+        const activityNameInput = document.getElementById('activityName');
+        const personaSelect = document.getElementById('persona');
+        const nodeCountInput = document.getElementById('nodeCount');
+        const commentsContainer = document.getElementById('commentsContainer');
+        const statusText = document.getElementById('statusText');
+        const commentsStatus = document.getElementById('commentsStatus');
+        const errorText = document.getElementById('errorText');
+
+        startBtn.addEventListener('click', async () => {
+            const activityName = activityNameInput.value.trim();
+            const persona = personaSelect.value;
+            const nodeCount = parseInt(nodeCountInput.value);
+
+            if (!activityName) {
+                errorText.textContent = '请输入活动名称';
+                return;
+            }
+
+            if (nodeCount < 10 || nodeCount > 200) {
+                errorText.textContent = '节点数量必须在 10-200 之间';
+                return;
+            }
+
+            errorText.textContent = '';
+            startBtn.disabled = true;
+            statusText.textContent = '推演中...';
+            statusText.classList.add('active');
+            commentsContainer.innerHTML = '';
+            commentsStatus.textContent = '连接中...';
+
+            nodeAnim.createParticles(nodeCount, persona === 'all' ? null : persona);
+
+            try {
+                const response = await fetch('http://localhost:8000/api/simulate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        campaign_id: activityName,
+                        scenario: persona === 'all' ? 'all' : persona,
+                        agents_count: nodeCount
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                commentsStatus.textContent = '接收中...';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let commentCount = 0;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const text = decoder.decode(value, { stream: true });
+                    const lines = text.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.substring(6));
+                                
+                                const comment = document.createElement('div');
+                                comment.className = `comment persona-${data.persona || getRandomPersona()}`;
+                                comment.textContent = data.comment || data.text || data.message || '';
+                                commentsContainer.appendChild(comment);
+                                
+                                commentsContainer.scrollTop = commentsContainer.scrollHeight;
+                                commentCount++;
+                                commentsStatus.textContent = `已接收 ${commentCount} 条评论`;
+                            } catch (e) {
+                                console.error('Parse error:', e);
+                            }
+                        }
+                    }
+                }
+
+                statusText.textContent = `完成！已生成 ${commentCount} 条评论`;
+                commentsStatus.textContent = `推演完成 (${commentCount} 条)`;
+            } catch (error) {
+                console.error('Error:', error);
+                errorText.textContent = `连接失败: ${error.message}`;
+                statusText.textContent = '出错';
+                statusText.classList.remove('active');
+                commentsStatus.textContent = '连接失败';
+            } finally {
+                startBtn.disabled = false;
+            }
+        });
+
+        activityNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                startBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>

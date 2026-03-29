@@ -1,0 +1,46 @@
+{
+  "activity_id": "applepay-2026-01",
+  "activity_name": "Apple Pay 已上線！派卡新用戶首刷免費（最高免 6 USDT）",
+  "activity_description": "派卡推出與 Apple Pay 和 Google Pay 的整合活動，新用戶首次綁定支付方式並完成消費可獲得首刷現金回饋。本活動鼓勵用戶邀請朋友加入，每成功邀請一位好友開卡並完成首筆消費，即可獲得額外的免單機會。回饋方式為 USDT 形式直接返還到派網賬戶，讓新用戶輕鬆享受購物優惠。",
+  "duration": "2026-01-06 至 2026-01-16",
+  "status": "已結束",
+  "target_users": "派卡新用戶（活動期間首次開卡）",
+  "rewards": [
+    {
+      "type": "首刷消費免單",
+      "description": "新用戶綁定 Apple Pay 或 Google Pay，完成首筆消費（單筆金額 > 1 USDT）",
+      "amount": "最高 6 USDT（實際消費多少免多少，上限 6 USDT）",
+      "frequency": "1 次"
+    },
+    {
+      "type": "邀請獎勵免單",
+      "description": "每邀請 1 名好友成功開卡並完成首刷消費（> 1 USDT）",
+      "amount": "額外 1 次免單機會，每次最高 6 USDT",
+      "frequency": "不限次數"
+    }
+  ],
+  "conditions": [
+    "活動期間（2026/01/06 - 2026/01/16）首次成功開通派卡的用戶",
+    "活動開始前已完成開卡的用戶不適用",
+    "單筆消費金額須大於 1 USDT",
+    "免單以 USDT 形式返還到派網賬戶",
+    "免單資格在 2026/01/18 23:59（UTC+8）失效"
+  ],
+  "referral_mechanism": {
+    "description": "邀請好友開卡獲得額外免單機會",
+    "rule": "每邀請 1 名好友開通派卡並完成首刷消費（> 1 USDT），可額外獲得 1 次免單機會",
+    "limit": "不設上限，邀請越多免單越多",
+    "reward_per_referral": "1 次免單機會（最高 6 USDT）"
+  },
+  "marketing_highlights": [
+    {
+      "title": "6 USDT 可以買什麼",
+      "examples": [
+        { "item": "麥當勞套餐", "price": "6 USDT" },
+        { "item": "賽百味", "price": "5 USDT" },
+        { "item": "牛肉麵", "price": "5 USDT" },
+        { "item": "7-11 咖啡", "price": "4 USDT" }
+      ]
+    }
+  ]
+}
