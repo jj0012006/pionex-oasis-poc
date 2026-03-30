@@ -601,7 +601,8 @@
             animate() {
                 if (!this.isAnimating) return;
 
-                this.ctx.fillStyle = 'rgba(10, 14, 26, 0.1)';
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.fillStyle = '#0A0E1A';
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
                 // Draw connections first (behind nodes)
