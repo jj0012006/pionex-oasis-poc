@@ -6,10 +6,8 @@ builder = "DOCKERFILE"
 [deploy]
 # Health check configuration
 healthcheckPath = "/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 120
 
 # Restart policy
 restartPolicy = "on-failure"
 maxRestarts = 3
-
-# Port configuration (Railway auto-detects from $PORT env var)
