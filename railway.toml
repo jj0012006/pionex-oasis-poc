@@ -2,4 +2,6 @@
 builder = "DOCKERFILE"
 
 [deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 60
 restartPolicy = "always"
