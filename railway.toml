@@ -1,2 +1,15 @@
+# Railway configuration for Pionex OASIS POC
+
 [build]
 builder = "DOCKERFILE"
+
+[deploy]
+# Health check configuration
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+
+# Restart policy
+restartPolicy = "on-failure"
+maxRestarts = 3
+
+# Port configuration (Railway auto-detects from $PORT env var)

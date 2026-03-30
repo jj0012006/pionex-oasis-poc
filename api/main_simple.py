@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Minimal FastAPI backend for Pionex OASIS POC
-No heavy dependencies - just FastAPI + SSE streaming
+No lifespan events, no blocking initialization
 """
 
 from fastapi import FastAPI
@@ -13,11 +13,14 @@ from typing import Optional
 import json
 import asyncio
 
-# Initialize FastAPI app
+# Initialize FastAPI app WITHOUT any startup events
 app = FastAPI(
     title="Pionex OASIS POC - Minimal",
     description="Minimal backend service for testing",
-    version="0.1.0"
+    version="0.1.0",
+    # Disable automatic docs to reduce startup time
+    docs_url=None,
+    redoc_url=None,
 )
 
 # Configure CORS middleware
@@ -49,7 +52,7 @@ MOCK_COMMENTS = [
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint - MUST respond quickly for Railway"""
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
@@ -90,9 +93,18 @@ async def start_simulation(request: SimulationRequest):
     """Start simulation with SSE streaming"""
     return StreamingResponse(
         simulate_stream(request.campaign_id, request.scenario),
-        media_type="text/event-stream"
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
     )
 
+# Simple entry point for Railway
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    print(f"Starting server on port {port}...")
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
