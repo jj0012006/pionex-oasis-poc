@@ -12,6 +12,14 @@ from datetime import datetime
 from typing import Optional
 import json
 import asyncio
+import os
+
+# Validate required environment variables at startup
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    print("⚠️ WARNING: OPENAI_API_KEY is not set! Service will start but API calls will fail.")
+else:
+    print(f"✅ OPENAI_API_KEY is configured (length: {len(OPENAI_API_KEY)})")
 
 # Initialize FastAPI app
 app = FastAPI(
