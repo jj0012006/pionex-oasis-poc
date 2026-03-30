@@ -8,7 +8,9 @@ RUN pip install -r requirements.txt
 
 COPY api/ ./api/
 
+# Expose port 8000 (Railway will route traffic to this port)
 EXPOSE 8000
 
-# Use shell form to properly expand $PORT environment variable from Railway
-CMD ["sh", "-c", "uvicorn api.main_simple:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Use exec form with env variable expansion
+# Railway sets PORT env var, fallback to 8000 if not set
+CMD sh -c "exec uvicorn api.main_simple:app --host 0.0.0.0 --port ${PORT:-8000}"
