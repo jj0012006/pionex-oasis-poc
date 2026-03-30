@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pionex OASIS | AI-Powered Campaign Simulation Platform</title>
+    <title>Pionex OASIS | Social Network Simulation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #00DC82;
-            --primary-dark: #00A86B;
             --bg-dark: #0A0E1A;
-            --bg-card: #111827;
-            --border: #374151;
             --text-primary: #F9FAFB;
             --text-secondary: #9CA3AF;
             --text-muted: #6B7280;
@@ -22,7 +19,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--bg-dark);
             color: var(--text-primary);
             overflow: hidden;
@@ -499,7 +496,7 @@
             <canvas id="canvas"></canvas>
             <div class="canvas-overlay">
                 <div class="stat-item">
-                    <div class="stat-label">Active Agents</div>
+                    <div class="stat-label">Active Users</div>
                     <div class="stat-value" id="activeAgents">0</div>
                 </div>
                 <div class="stat-item">
@@ -507,7 +504,7 @@
                     <div class="stat-value" id="commentCount">0</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Nodes</div>
+                    <div class="stat-label">Connections</div>
                     <div class="stat-value" id="networkNodes">0</div>
                 </div>
             </div>
@@ -537,13 +534,14 @@
             'KOL 粉丝': '#8B5CF6'
         };
 
-        class NetworkAnimation {
+        class SocialNetworkAnimation {
             constructor(canvas) {
                 this.canvas = canvas;
                 this.ctx = canvas.getContext('2d');
                 this.nodes = [];
-                this.centerNode = null;
+                this.connections = [];
                 this.isAnimating = false;
+                this.maxNodes = 50;
                 this.resizeCanvas();
                 window.addEventListener('resize', () => this.resizeCanvas());
             }
@@ -552,92 +550,118 @@
                 const rect = this.canvas.parentElement.getBoundingClientRect();
                 this.canvas.width = rect.width;
                 this.canvas.height = rect.height;
-                this.centerX = this.canvas.width / 2;
-                this.centerY = this.canvas.height / 2;
             }
 
-            start(maxNodes, filterPersona = null) {
+            start(maxNodes) {
                 this.maxNodes = maxNodes;
                 this.nodes = [];
-                this.filterPersona = filterPersona;
-                
-                this.centerNode = {
-                    x: this.centerX,
-                    y: this.centerY,
-                    radius: 8,
-                    color: '#00DC82'
-                };
-
+                this.connections = [];
                 this.isAnimating = true;
                 this.animate();
             }
 
-            addNode(persona) {
+            addUser(persona, influence = 1) {
                 if (this.nodes.length >= this.maxNodes) {
                     this.nodes.shift();
                 }
 
                 const color = PERSONA_COLORS[persona] || '#6B7280';
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 30 + Math.random() * 50;
-
-                this.nodes.push({
-                    x: this.centerX + Math.cos(angle) * distance,
-                    y: this.centerY + Math.sin(angle) * distance,
-                    vx: Math.cos(angle) * 0.3,
-                    vy: Math.sin(angle) * 0.3,
-                    radius: 5 + Math.random() * 3,
+                
+                // User node with influence-based size
+                const node = {
+                    x: Math.random() * (this.canvas.width - 100) + 50,
+                    y: Math.random() * (this.canvas.height - 100) + 50,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    radius: 8 + influence * 6,
                     color: color,
                     persona: persona,
+                    influence: influence,
                     life: 1
-                });
+                };
+
+                this.nodes.push(node);
+
+                // Create connections to nearby users (social network)
+                const nearbyNodes = this.nodes.filter((n, i) => 
+                    i < this.nodes.length - 1 && 
+                    Math.hypot(n.x - node.x, n.y - node.y) < 150
+                );
+
+                for (const nearby of nearbyNodes) {
+                    this.connections.push({
+                        from: node,
+                        to: nearby,
+                        life: 1,
+                        width: 1 + Math.min(influence, nearby.influence) * 0.5
+                    });
+                }
             }
 
             animate() {
                 if (!this.isAnimating) return;
 
-                this.ctx.fillStyle = 'rgba(10, 14, 26, 0.15)';
+                this.ctx.fillStyle = 'rgba(10, 14, 26, 0.1)';
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-                // Draw center node
-                if (this.centerNode) {
-                    this.ctx.fillStyle = this.centerNode.color;
-                    this.ctx.beginPath();
-                    this.ctx.arc(this.centerNode.x, this.centerNode.y, this.centerNode.radius, 0, Math.PI * 2);
-                    this.ctx.fill();
+                // Draw connections first (behind nodes)
+                for (let i = this.connections.length - 1; i >= 0; i--) {
+                    const conn = this.connections[i];
+                    
+                    if (!conn.from || !conn.to || conn.from.life < 0.1 || conn.to.life < 0.1) {
+                        this.connections.splice(i, 1);
+                        continue;
+                    }
 
-                    // Glow effect
-                    const gradient = this.ctx.createRadialGradient(
-                        this.centerNode.x, this.centerNode.y, 0,
-                        this.centerNode.x, this.centerNode.y, 30
+                    const gradient = this.ctx.createLinearGradient(
+                        conn.from.x, conn.from.y,
+                        conn.to.x, conn.to.y
                     );
-                    gradient.addColorStop(0, 'rgba(0, 220, 130, 0.3)');
-                    gradient.addColorStop(1, 'rgba(0, 220, 130, 0)');
-                    this.ctx.fillStyle = gradient;
+                    gradient.addColorStop(0, conn.from.color + '40');
+                    gradient.addColorStop(1, conn.to.color + '40');
+                    
+                    this.ctx.strokeStyle = gradient;
+                    this.ctx.lineWidth = conn.width;
                     this.ctx.beginPath();
-                    this.ctx.arc(this.centerNode.x, this.centerNode.y, 30, 0, Math.PI * 2);
-                    this.ctx.fill();
+                    this.ctx.moveTo(conn.from.x, conn.from.y);
+                    this.ctx.lineTo(conn.to.x, conn.to.y);
+                    this.ctx.stroke();
+
+                    conn.life *= 0.995;
                 }
 
-                // Draw nodes and connections
+                // Draw and update nodes
                 for (let i = this.nodes.length - 1; i >= 0; i--) {
                     const node = this.nodes[i];
                     
+                    // Slow drift
                     node.x += node.vx;
                     node.y += node.vy;
-                    node.life *= 0.995;
+                    node.life *= 0.998;
 
-                    // Draw connection to center
-                    if (this.centerNode && node.life > 0.1) {
-                        this.ctx.strokeStyle = `rgba(0, 220, 130, ${node.life * 0.15})`;
-                        this.ctx.lineWidth = 1;
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(node.x, node.y);
-                        this.ctx.lineTo(this.centerNode.x, this.centerNode.y);
-                        this.ctx.stroke();
+                    // Bounce off walls
+                    if (node.x < node.radius || node.x > this.canvas.width - node.radius) {
+                        node.vx *= -1;
+                    }
+                    if (node.y < node.radius || node.y > this.canvas.height - node.radius) {
+                        node.vy *= -1;
                     }
 
-                    // Draw node
+                    // Draw node with glow
+                    const gradient = this.ctx.createRadialGradient(
+                        node.x, node.y, 0,
+                        node.x, node.y, node.radius * 2
+                    );
+                    gradient.addColorStop(0, node.color);
+                    gradient.addColorStop(0.5, node.color + '80');
+                    gradient.addColorStop(1, 'transparent');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(node.x, node.y, node.radius * 2, 0, Math.PI * 2);
+                    this.ctx.fill();
+
+                    // Core
                     this.ctx.fillStyle = node.color;
                     this.ctx.globalAlpha = node.life;
                     this.ctx.beginPath();
@@ -646,15 +670,15 @@
                     this.ctx.globalAlpha = 1;
 
                     // Remove dead nodes
-                    if (node.life < 0.05 || 
-                        node.x < -50 || node.x > this.canvas.width + 50 ||
-                        node.y < -50 || node.y > this.canvas.height + 50) {
+                    if (node.life < 0.05) {
                         this.nodes.splice(i, 1);
+                        this.connections = this.connections.filter(c => c.from !== node && c.to !== node);
                     }
                 }
 
+                // Update stats
                 document.getElementById('activeAgents').textContent = this.nodes.length;
-                document.getElementById('networkNodes').textContent = this.nodes.length + 1;
+                document.getElementById('networkNodes').textContent = this.connections.length;
 
                 requestAnimationFrame(() => this.animate());
             }
@@ -666,7 +690,7 @@
         }
 
         const canvas = document.getElementById('canvas');
-        const nodeAnim = new NetworkAnimation(canvas);
+        const nodeAnim = new SocialNetworkAnimation(canvas);
         const startBtn = document.getElementById('startBtn');
         const activityNameInput = document.getElementById('activityName');
         const personaSelect = document.getElementById('persona');
@@ -689,7 +713,7 @@
             if (commentsContainer.querySelector('.empty-state')) clearComments();
 
             const persona = comment.persona || Object.keys(PERSONA_COLORS)[Math.floor(Math.random() * 5)];
-            const color = PERSONA_COLORS[persona];
+            const influence = 0.5 + Math.random() * 1; // Random influence for demo
             const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 
             const card = document.createElement('div');
@@ -714,7 +738,8 @@
             document.getElementById('commentCount').textContent = count;
             commentCounter.textContent = count;
 
-            nodeAnim.addNode(persona);
+            // Add user to social network
+            nodeAnim.addUser(persona, influence);
         }
 
         startBtn.addEventListener('click', async () => {
@@ -729,7 +754,7 @@
             startBtn.classList.add('loading');
             startBtn.querySelector('span').innerHTML = '<div class="btn-loading-spinner"></div> Simulating...';
 
-            nodeAnim.start(nodeCount, persona === 'all' ? null : persona);
+            nodeAnim.start(nodeCount);
 
             try {
                 const response = await fetch(`${API_BASE_URL}/api/simulate`, {
