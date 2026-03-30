@@ -18,8 +18,16 @@ import os
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     print("⚠️ WARNING: OPENAI_API_KEY is not set! Service will start but API calls will fail.")
+    print("⚠️ Please set OPENAI_API_KEY in Railway Variables dashboard.")
 else:
     print(f"✅ OPENAI_API_KEY is configured (length: {len(OPENAI_API_KEY)})")
+    # Initialize OpenAI client only if key is present
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        print("✅ OpenAI client initialized successfully")
+    except Exception as e:
+        print(f"⚠️ Failed to initialize OpenAI client: {e}")
 
 # Initialize FastAPI app
 app = FastAPI(
