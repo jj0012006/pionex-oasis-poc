@@ -2,11 +2,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+# Install only minimal dependencies
+COPY requirements.simple.txt .
+RUN pip install -r requirements.simple.txt
 
 COPY api/ ./api/
 
 EXPOSE 8000
 
-CMD uvicorn api.main:app --host 0.0.0.0 --port $PORT
+CMD uvicorn api.main_simple:app --host 0.0.0.0 --port $PORT
