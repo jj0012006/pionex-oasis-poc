@@ -99,6 +99,7 @@ class SimulationRequest(BaseModel):
     threshold: str  # none, low, medium, high
     duration_days: int
     reach: int  # 触达人数
+    market_sentiment: str = "neutral" # bull, neutral, bear
 
 class SimulationStep(BaseModel):
     step: int
@@ -122,39 +123,79 @@ class SimulationResult(BaseModel):
 
 # ============== Simulation Engine ==============
 
-def calculate_conversion_rate(segment: str, reward: float, threshold: str, reward_type: str) -> float:
-    """Calculate conversion rate based on rules"""
-    seg_data = UserSegment.SEGMENTS.get(segment, UserSegment.SEGMENTS["new_unfunded"])
-    base_rate = seg_data["base_conversion"]
+def calculate_conversion_rate(
+    user_segment: str,
+    reward_amount: float,
+    threshold: str,
+    channel: str,
+    duration_days: int,
+    market_sentiment: str = "neutral"
+) -> float:
+    """
+    OASIS 转化率校准公式 v2.0 - 基准 + 动态系数模型
+    """
+    # 1. 基准转化率 (BASE_CONVERSION)
+    base_conversions = {
+        "new_unfunded": 0.08,
+        "small_deposit": 0.12,
+        "active_trader": 0.25,
+        "dormant": 0.05
+    }
+    base_rate = base_conversions.get(user_segment, 0.12)
     
-    # Reward multiplier
-    reward_mult = 1.0
-    if reward >= 50:
-        reward_mult = 2.0
-    elif reward >= 20:
-        reward_mult = 1.5
-    elif reward >= 10:
-        reward_mult = 1.2
+    # 2. 奖励系数 (Reward Multiplier)
+    reward_mult = min(1.0 + (reward_amount / 50.0), 3.5)
     
-    # Threshold multiplier
-    threshold_mult = 1.0
-    if threshold == "none":
-        threshold_mult = 1.3
-    elif threshold == "low":
-        threshold_mult = 1.1
-    elif threshold == "high":
-        threshold_mult = 0.7
+    # 3. 门槛系数 (Threshold Multiplier)
+    threshold_multipliers = {
+        "none": 1.2,
+        "low": 1.1,
+        "medium": 1.0,
+        "high": 0.8,
+        "very_high": 0.6
+    }
+    threshold_mult = threshold_multipliers.get(threshold, 1.0)
     
-    # Reward type fit
-    type_fit = 1.0
-    if segment == "new_unfunded" and reward_type == "first_deposit":
-        type_fit = 1.5
-    elif segment == "active_trader" and reward_type == "trading_volume":
-        type_fit = 1.4
-    elif segment == "dormant" and reward_type == "lottery":
-        type_fit = 1.3
+    # 4. 渠道系数 (Channel Multiplier)
+    channel_multipliers = {
+        "organic": 1.0,
+        "line_community": 1.3,
+        "kol_youtuber": 1.2,
+        "kol_tiktok": 1.15,
+        "email": 0.9,
+        "push_notification": 0.85,
+        "paid_ads": 0.8
+    }
+    channel_mult = channel_multipliers.get(channel, 1.0)
     
-    return base_rate * reward_mult * threshold_mult * type_fit
+    # 5. 时长系数 (Duration Multiplier)
+    if duration_days <= 3:
+        duration_mult = 1.2
+    elif duration_days <= 7:
+        duration_mult = 1.0
+    elif duration_days <= 14:
+        duration_mult = 0.95
+    elif duration_days <= 30:
+        duration_mult = 0.85
+    else:
+        duration_mult = 0.7
+        
+    # 6. 市场系数 (Market Sentiment Multiplier)
+    market_multipliers = {
+        "bull": 1.2,
+        "neutral": 1.0,
+        "bear": 0.75
+    }
+    market_mult = market_multipliers.get(market_sentiment, 1.0)
+    
+    # 计算最终转化率
+    final_rate = base_rate * reward_mult * threshold_mult * channel_mult * duration_mult * market_mult
+    
+    # 约束条件
+    final_rate = min(final_rate, 0.60) # 上限 60%
+    final_rate = max(final_rate, base_rate * 0.5) # 最小值保护
+    
+    return final_rate
 
 def generate_simulation_steps(request: SimulationRequest, result: dict) -> List[dict]:
     """Generate step-by-step simulation output"""
@@ -328,12 +369,10 @@ async def start_simulation(request: SimulationRequest):
         request.user_segment,
         request.reward_amount,
         request.threshold,
-        request.reward_type
+        request.channel,
+        request.duration_days,
+        request.market_sentiment
     )
-    
-    # Apply channel multiplier
-    channel_mult = Channel.CHANNELS.get(request.channel, {}).get("engagement_multiplier", 1.0)
-    conversion_rate *= channel_mult
     
     total_participants = int(request.reach * conversion_rate)
     avg_deposit = UserSegment.SEGMENTS.get(request.user_segment, {}).get("avg_deposit", 150)
